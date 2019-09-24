@@ -196,7 +196,6 @@ u8 W25Q128_BUFFER[4096];
 void W25Q128_WriteFlash(u8 *pBuffer, u32 WriteAddr, u16 WriteLen)
 {
     u16 i;
-    u8 flags_erase = 0;
     u16 secops = WriteAddr / 4096; // 扇区地址
     u16 secoff = WriteAddr % 4096; // 扇区内偏移
     u16 secreman = 4096 - secoff;  // 扇区剩余空间
@@ -211,7 +210,7 @@ void W25Q128_WriteFlash(u8 *pBuffer, u32 WriteAddr, u16 WriteLen)
     {
         W25Q128_ReadFlash(W25Q128_BUFFER, secops*4096, 4096);  // 读整个扇区数据
 
-        for (i = 0; i < WriteLen; i++)
+        for (i = 0; i < secreman; i++)
         {
             if (W25Q128_BUFFER[secoff + i] != 0xff)  // 需要擦除
             {
@@ -219,11 +218,11 @@ void W25Q128_WriteFlash(u8 *pBuffer, u32 WriteAddr, u16 WriteLen)
             }
         }
 
-        if (i < WriteLen)  // 需要擦除
+        if (i < secreman)  // 需要擦除
         {
             W25Q128_EraseSector(secops*4096);  // 擦除整个扇区
 
-            for(i = 0; i < WriteLen; i++)
+            for(i = 0; i < secreman; i++)
             {
                 W25Q128_BUFFER[secoff + i] = pBuffer[i]; // 准备数据
             }
@@ -232,7 +231,7 @@ void W25Q128_WriteFlash(u8 *pBuffer, u32 WriteAddr, u16 WriteLen)
         }
         else   // 不需要擦除，直接向所在页写入数据
         {
-            W25Q128_WriteFlash(pBuffer, WriteAddr, secreman);  // 写入数据
+            W25Q128_WritePage(pBuffer, WriteAddr, secreman);  // 写入数据
         }
 
         if (WriteLen == secreman)

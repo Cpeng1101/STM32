@@ -12,7 +12,7 @@ int main(void)
 	uart_init(115200);
 	LED_Init();
  	W25Q128_Init();
-	u8 string[] = {"hello world ni hao shijie"};
+	u8 string[] = {"hello"};
 	u8 len = sizeof(string);
 	u8 buffer[256];
 
